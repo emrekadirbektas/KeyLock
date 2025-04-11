@@ -9,6 +9,7 @@ import java.security.SecureRandom;
  */
 public class KeyExchangeParty {
     private final String name;
+    private final BigInteger p; // Store p for later use
     private final BigInteger privateKey;
     private final BigInteger publicKey;
     private BigInteger sharedSecretKey;
@@ -17,12 +18,13 @@ public class KeyExchangeParty {
      * Constructor for a party in the Diffie-Hellman exchange.
      * Generates a private key and computes the corresponding public key.
      *
-     * @param name The name of the party (e.g., "Alice").
+     * @param name The name of the party (e.g., "Party1").
      * @param p    The public prime modulus.
      * @param g    The public generator.
      */
     public KeyExchangeParty(String name, BigInteger p, BigInteger g) {
         this.name = name;
+        this.p = p;
         // Private key is a random number 's' such that 1 < s < p-1
         this.privateKey = generatePrivateKey(p);
         // Public key is g^privateKey mod p
@@ -50,9 +52,8 @@ public class KeyExchangeParty {
      * Computes the shared secret key using the other party's public key.
      *
      * @param otherPartyPublicKey The public key received from the other party.
-     * @param p                   The public prime modulus.
      */
-    public void computeSharedSecretKey(BigInteger otherPartyPublicKey, BigInteger p) {
+    public void computeSharedSecretKey(BigInteger otherPartyPublicKey) {
         // Shared secret is otherPartyPublicKey^privateKey mod p
         this.sharedSecretKey = otherPartyPublicKey.modPow(this.privateKey, p);
     }
