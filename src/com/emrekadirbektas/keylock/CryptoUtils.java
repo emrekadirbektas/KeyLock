@@ -4,6 +4,10 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
+import java.security.GeneralSecurityException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -13,7 +17,7 @@ import java.util.Base64;
 /**
  * Utility class for cryptographic operations like AES encryption and decryption.
  */
-public class CryptoUtils {
+public final class CryptoUtils {
 
     private static final String ALGORITHM = "AES";
     private static final String TRANSFORMATION = "AES/CBC/PKCS5Padding";
@@ -21,14 +25,23 @@ public class CryptoUtils {
     private static final int IV_SIZE = 16; // 16 bytes for AES
 
     /**
+     * Private constructor to prevent instantiation of this utility class.
+     */
+    private CryptoUtils() {}
+
+    /**
      * Derives a fixed-size key from the shared secret using SHA-256.
      *
      * @param sharedSecret The BigInteger shared secret from Diffie-Hellman.
      * @return A byte array suitable for use as an AES key.
      * @throws Exception if the hashing algorithm is not found.
+     * @throws NoSuchAlgorithmException if the SHA-256 algorithm is not available.
      */
-    private static byte[] deriveKey(BigInteger sharedSecret) throws Exception {
-        MessageDigest sha = MessageDigest.getInstance("SHA-256");
+    private static byte[] deriveKey(BigInteger sharedSecret) throws NoSuchAlgorithmException {
+        MessageDigest sha;
+        // Using try-with-resources is not applicable here, but we can be more specific about exceptions.
+        // All modern JVMs will have SHA-256.
+        sha = MessageDigest.getInstance("SHA-256");
         byte[] sharedSecretBytes = sharedSecret.toByteArray();
         byte[] key = sha.digest(sharedSecretBytes);
         // Truncate the key to the required size (32 bytes for AES-256)
@@ -41,9 +54,9 @@ public class CryptoUtils {
      * @param plainText    The message to encrypt.
      * @param sharedSecret The shared secret key.
      * @return A Base64 encoded string containing the IV and the ciphertext.
-     * @throws Exception for any cryptographic errors.
+     * @throws GeneralSecurityException for any cryptographic errors.
      */
-    public static String encrypt(String plainText, BigInteger sharedSecret) throws Exception {
+    public static String encrypt(String plainText, BigInteger sharedSecret) throws GeneralSecurityException {
         byte[] keyBytes = deriveKey(sharedSecret);
         SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, ALGORITHM);
 
@@ -68,9 +81,9 @@ public class CryptoUtils {
      * @param encryptedString The Base64 encoded string (IV + ciphertext).
      * @param sharedSecret    The shared secret key.
      * @return The original plaintext message.
-     * @throws Exception for any cryptographic errors.
+     * @throws GeneralSecurityException for any cryptographic errors.
      */
-    public static String decrypt(String encryptedString, BigInteger sharedSecret) throws Exception {
+    public static String decrypt(String encryptedString, BigInteger sharedSecret) throws GeneralSecurityException {
         byte[] ivAndCipherText = Base64.getDecoder().decode(encryptedString);
 
         IvParameterSpec ivParameterSpec = new IvParameterSpec(ivAndCipherText, 0, IV_SIZE);
