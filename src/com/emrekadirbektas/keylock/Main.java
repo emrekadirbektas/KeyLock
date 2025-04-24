@@ -120,10 +120,31 @@ public class Main {
         System.out.printf("%s computes shared secret: %s%n", party1.getName(), party1.getSharedSecretKey());
         System.out.printf("%s computes shared secret:   %s%n", party2.getName(), party2.getSharedSecretKey());
 
-        if (party1.getSharedSecretKey().equals(party2.getSharedSecretKey())) {
-            System.out.println("\nSUCCESS: Shared secret keys match!");
-        } else {
+        if (!party1.getSharedSecretKey().equals(party2.getSharedSecretKey())) {
             System.out.println("\nERROR: Shared secret keys do NOT match!");
+            return;
+        }
+
+        System.out.println("\nSUCCESS: Shared secret keys match!");
+        System.out.println("The two parties can now communicate securely.");
+        System.out.println("-----------------------------------------------------\n");
+
+        // --- New part: Encrypt and Decrypt a message ---
+        System.out.printf("Enter a secret message to send from %s to %s:\n> ", party1.getName(), party2.getName());
+        String message = scanner.nextLine();
+
+        try {
+            // party1 encrypts the message with the shared key
+            String encryptedMessage = CryptoUtils.encrypt(message, party1.getSharedSecretKey());
+            System.out.printf("\n[%s's side] Encrypted message (Ciphertext):\n%s\n", party1.getName(), encryptedMessage);
+
+            // party2 decrypts the message with its shared key
+            String decryptedMessage = CryptoUtils.decrypt(encryptedMessage, party2.getSharedSecretKey());
+            System.out.printf("\n[%s's side] Decrypted message:\n%s\n", party2.getName(), decryptedMessage);
+
+        } catch (Exception e) {
+            System.err.println("An error occurred during encryption/decryption: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
